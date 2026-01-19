@@ -384,11 +384,12 @@
             }
         }
 
-        function getWeatherCondition(temp, precipProba, windSpeed) {
-            if (precipProba > 70 || windSpeed > 40 || temp < 5 || temp > 35) {
+        function getWeatherCondition(maxTemp, precipProba, windSpeed, weatherCode) {
+            if (precipProba > 70 || windSpeed > 40 || maxTemp < 5 || maxTemp > 35) {
                 return 'bad';
             }
-            if (precipProba > 40 || windSpeed > 25 || temp < 10 || temp > 30) {
+            const goodWeatherCode = weatherCode < 3;
+            if (precipProba > 40 || windSpeed > 25 || maxTemp < 10 || maxTemp > 30 || goodWeatherCode) {
                 return 'average';
             }
             return 'good';
@@ -463,8 +464,7 @@
                     const windSpeed = Math.round(data.daily.wind_speed_10m_max[0]);
                     const weatherCode = data.daily.weather_code[0];
 
-                    const avgTemp = (tempMax + tempMin) / 2;
-                    const condition = getWeatherCondition(avgTemp, precipProba, windSpeed);
+                    const condition = getWeatherCondition(tempMax, precipProba, windSpeed, weatherCode);
                     const weatherIcon = getWeatherIcon(weatherCode);
                     const weatherDesc = getWeatherDescription(weatherCode);
 
