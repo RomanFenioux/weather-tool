@@ -163,14 +163,24 @@
             margin-bottom: 5px;
         }
         
-        .forecast-type.precise {
+        .forecast-type-precise {
             background: #4caf50;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 0.85em;
             color: white;
+            text-align: center;
         }
         
-        .forecast-type.trend {
-            background: #ff9800;
-            color: white;
+        .forecast-type-trend {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 0.85em;
+            color: #856404;
+            text-align: center;
         }
         
         .delete-btn {
@@ -261,16 +271,6 @@
             font-size: 0.9em;
             color: #1565c0;
         }
-        
-        .trend-warning {
-            background: #fff3cd;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            font-size: 0.85em;
-            color: #856404;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -298,7 +298,7 @@
                 </div>
             </div>
         </div>
-        
+        <div class="trend-banner" id="trendBanner"></div>
         <div class="weather-grid" id="weatherGrid"></div>
         
         <div class="legend">
@@ -427,6 +427,7 @@
 
         async function loadWeather() {
             const grid = document.getElementById('weatherGrid');
+            const banner = document.getElementById('trendBanner')
             const selectedDate = dateInput.value;
             
             if (!selectedDate) return;
@@ -437,6 +438,12 @@
             
             const daysDiff = Math.floor((selectedDateObj - today) / (1000 * 60 * 60 * 24));
             const isTrend = daysDiff > 4;
+
+            const forecastType = isTrend ? 'trend' : 'precise';
+            const forecastLabel = isTrend ? '⚠️ Prévision indicative (précision réduite)' : 'Prévision précise';
+            const trendClass = isTrend ? 'trend' : '';
+
+            banner.innerHTML = `<div class="forecast-type-${forecastType}">${forecastLabel}</div>`
 
             grid.innerHTML = '<div class="loading">Chargement des prévisions météo...</div>';
 
@@ -468,13 +475,8 @@
                     const weatherIcon = getWeatherIcon(weatherCode);
                     const weatherDesc = getWeatherDescription(weatherCode);
 
-                    const forecastType = isTrend ? 'trend' : 'precise';
-                    const forecastLabel = isTrend ? 'TENDANCE' : 'PRÉVISION PRÉCISE';
-                    const trendClass = isTrend ? 'trend' : '';
-
                     return `
                         <div class="spot-card ${condition} ${trendClass}">
-                            <div class="forecast-type ${forecastType}">${forecastLabel}</div>
                             <div class="spot-header">
                                 <div class="spot-name">${spot.name}</div>
                                 <button class="delete-btn" onclick="deleteSpot(${index})">×</button>
@@ -497,7 +499,6 @@
                                     <span>${windSpeed} km/h</span>
                                 </div>
                             </div>
-                            ${isTrend ? '<div class="trend-warning">⚠️ Prévision indicative (précision réduite)</div>' : ''}
                         </div>
                     `;
                 } catch (error) {
