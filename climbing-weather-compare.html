@@ -442,7 +442,9 @@
 
             const weatherCards = await Promise.all(spots.map(async (spot, index) => {
                 try {
-                    const url = `https://api.open-meteo.com/v1/meteofrance?latitude=${spot.lat}&longitude=${spot.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,weather_code&timezone=Europe/Paris&start_date=${selectedDate}&end_date=${selectedDate}`;
+                    // Utiliser meteofrance pour J+1 à J+4, forecast générique pour J+5 à J+10
+                    const apiBase = isTrend ? 'forecast' : 'meteofrance';
+                    const url = `https://api.open-meteo.com/v1/${apiBase}?latitude=${spot.lat}&longitude=${spot.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,weather_code&timezone=Europe/Paris&start_date=${selectedDate}&end_date=${selectedDate}`;
                     
                     const response = await fetch(url);
                     
