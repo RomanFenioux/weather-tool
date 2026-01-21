@@ -358,6 +358,7 @@
     </div>
 
     <script>
+        const coordinatesDecimals = 4;
         const grid = document.getElementById('weatherGrid');
         const contextMenu = document.getElementById('contextMenu');
         const copyValueItem = document.getElementById('copyValue');
@@ -400,9 +401,9 @@
                 contextMenu.style.top = e.clientY + 'px';
                 contextMenu.classList.add('visible');
 
-                const lat = currentTarget.getAttribute('lat');
+                const lat = currentTarget.getAttribute('lat').toFixed(coordinatesDecimals);
                 const latDir = lat > 0 ? "N":"S";
-                const lon = currentTarget.getAttribute('lon');
+                const lon = currentTarget.getAttribute('lon').toFixed(coordinatesDecimals);
                 const lonDir = lon > 0 ? "E":"W";
 
                 const meteoBlueLink = document.getElementById("meteo-blue-link");
@@ -446,8 +447,8 @@
 
         function addSpot() {
             const name = document.getElementById('spotName').value.trim();
-            const lat = parseFloat(document.getElementById('spotLat').value);
-            const lon = parseFloat(document.getElementById('spotLon').value);
+            const lat = parseFloat(document.getElementById('spotLat').value).toFixed(coordinatesDecimals);
+            const lon = parseFloat(document.getElementById('spotLon').value).toFixed(coordinatesDecimals);
 
             if (!name || isNaN(lat) || isNaN(lon)) {
                 alert('Veuillez remplir tous les champs correctement');
