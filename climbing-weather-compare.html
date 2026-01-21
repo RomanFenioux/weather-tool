@@ -377,8 +377,8 @@
             if (precipProba > 70 || windSpeed > 40 || maxTemp < 5 || maxTemp > 35) {
                 return 'bad';
             }
-            const goodWeatherCode = weatherCode < 3;
-            if (precipProba > 40 || windSpeed > 25 || maxTemp < 10 || maxTemp > 30 || goodWeatherCode) {
+            const goodWeatherCode = weatherCode < 4;
+            if (precipProba > 40 || windSpeed > 30 || maxTemp < 10 || maxTemp > 30 || !goodWeatherCode) {
                 return 'average';
             }
             return 'good';
