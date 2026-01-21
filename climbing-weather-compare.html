@@ -332,7 +332,7 @@
             </div>
         </div>
         <div class="context-menu" id="contextMenu">
-            <div class="menu-item" id="copyValue">📋 Copy Lat, Long coordinates</div>
+            <div class="menu-item" id="copyCoordinates">📋 Copy Lat, Long coordinates</div>
             <a id="meteo-blue-link" target="_blank" rel="noopener noreferrer" href="https://www.meteoblue.com/fr/meteo/semaine/0.0N0.0E?day=1">
                 <div class="menu-item" id="linkToMeteoBlue">⛅ Go to Meteoblue</div>
             </a>
@@ -361,7 +361,7 @@
         const coordinatesDecimals = 4;
         const grid = document.getElementById('weatherGrid');
         const contextMenu = document.getElementById('contextMenu');
-        const copyValueItem = document.getElementById('copyValue');
+        const copyCoordinatesItem = document.getElementById('copyCoordinates');
         let currentTarget = null;
 
         let spots = [
@@ -413,20 +413,7 @@
         });
 
         // Copy value to clipboard when menu item is clicked
-        copyValueItem.addEventListener('click', () => {
-            if (currentTarget) {
-                const value = currentTarget.getAttribute('coords');
-
-                navigator.clipboard.writeText(value).then(() => {
-                    alert(`Copied: ${value}`);
-                }).catch(err => {
-                    console.error('Failed to copy:', err);
-                });
-            }
-
-            contextMenu.classList.remove('visible');
-            currentTarget = null;
-        });
+        copyCoordinatesItem.addEventListener('click', onCopyCoordinatesClicked);
 
         // Hide menu when clicking anywhere else
         document.addEventListener('click', () => {
@@ -537,7 +524,7 @@
 
         async function loadWeather() {
             const grid = document.getElementById('weatherGrid');
-            const banner = document.getElementById('trendBanner')
+            const banner = document.getElementById('trendBanner');
             const selectedDate = dateInput.value;
             
             if (!selectedDate) return;
@@ -593,7 +580,8 @@
 
                     const spotCard = document.createElement('div');
                     spotCard.className = "spot-card " + condition + " " + trendClass;
-                    spotCard.setAttribute('coords', "" + spot.lat + ", " + spot.lon)
+                    spotCard.setAttribute('lat', spot.lat);
+                    spotCard.setAttribute('lon', spot.lon);
                     spotCard.innerHTML = `
                             <div class="spot-header">
                                 <div class="spot-name">${spot.name}</div>
