@@ -168,31 +168,25 @@
         }
         
         .forecast-type {
-            font-size: 0.75em;
-            padding: 4px 8px;
+            font-size: 0.85em;
+            padding: 10px;
             border-radius: 5px;
             font-weight: 600;
-            margin-bottom: 5px;
-        }
-        
-        .forecast-type-precise {
-            background: #4caf50;
-            padding: 10px;
-            border-radius: 5px;
             margin-top: 10px;
-            font-size: 0.85em;
-            color: white;
+            margin-bottom: 10px;
             text-align: center;
         }
         
-        .forecast-type-trend {
-            background: #fff3cd;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            font-size: 0.85em;
+        .forecast-type.precise {
+            background: linear-gradient(135deg, #7ab354 0%, #509c5a 100%);
+
+            color: #e2ffe8;
+
+        }
+        
+        .forecast-type.trend {
+            background: linear-gradient(135deg, #fff3cd 0%, #ecd2a1 100%);
             color: #856404;
-            text-align: center;
         }
         
         .delete-btn {
@@ -551,7 +545,7 @@
             const forecastLabel = isTrend ? '⚠️ Prévision indicative (précision réduite)' : 'Prévision précise';
             const trendClass = isTrend ? 'trend' : '';
 
-            banner.innerHTML = `<div class="forecast-type-${forecastType}">${forecastLabel}</div>`
+            banner.innerHTML = `<div class="forecast-type ${forecastType}">${forecastLabel}</div>`
 
             grid.innerHTML = '<div class="loading">Chargement des prévisions météo...</div>';
 
