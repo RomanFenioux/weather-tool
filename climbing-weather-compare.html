@@ -55,8 +55,9 @@
             align-items: center;
         }
 
-        .map-selector-map {
+        .map-coord-selector {
             height: 300px;
+            margin: 15px;
         }
 
         .date-selector {
@@ -126,7 +127,7 @@
         button:disabled {
             background: #bcbfcc;
         }
-        
+
         .weather-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -329,25 +330,7 @@
             Données : ARPEGE + AROME (J+1 à J+4) • Modèles globaux (J+5 à J+10) • Prévisions jusqu'à 10 jours
         </div>
 
-        <div id="map" style="height: 400px;"></div>
-        <script>
-            const map = L.map('map').setView([45.7292, 4.8230], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-            let marker;
-            map.on('click', function(e) {
-              const lat = e.latlng.lat;
-              const lon = e.latlng.lng;
-
-              // Update your existing lat/lon inputs
-              document.getElementById('spotLat').value = lat.toFixed(4);
-              document.getElementById('spotLon').value = lon.toFixed(4);
-
-              // Optional: add/move a marker
-              if (marker) map.removeLayer(marker);
-              marker = L.marker([lat, lon]).addTo(map);
-            });
-        </script>
+        <div class="map-coord-selector" id="mapCoordSelector"></div>
 
         <div class="controls">
             <div class="date-selector">
@@ -413,6 +396,12 @@
         if (savedLocations) {
             locations = JSON.parse(savedLocations);
         }
+
+        const map = L.map('mapCoordSelector').setView([45.7292, 4.8230], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        let marker;
+        map.on('click', onMapClicked);
 
         const dateInput = document.getElementById('dateInput');
         setupDateInput();
@@ -536,6 +525,23 @@
                 saveLocations();
                 loadWeather();
             }
+        }
+
+        function selectWithMap() {
+            mapCoordSelector.classList.add("visible")
+        }
+
+        function onMapClicked(e) {
+          const lat = e.latlng.lat;
+          const lon = e.latlng.lng;
+
+          // Update your existing lat/lon inputs
+          document.getElementById('spotLat').value = lat.toFixed(4);
+          document.getElementById('spotLon').value = lon.toFixed(4);
+
+          // Optional: add/move a marker
+          if (marker) map.removeLayer(marker);
+          marker = L.marker([lat, lon]).addTo(map);
         }
 
          /**
