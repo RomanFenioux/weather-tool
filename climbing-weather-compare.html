@@ -388,29 +388,7 @@
         dateInput.addEventListener('change', loadWeather);
 
         // Event delegation: listen on container for right-clicks on grid-item class
-        grid.addEventListener('contextmenu', (e) => {
-            // Check if the clicked element or its parent has the grid-item class
-            const gridItem = e.target.closest('.spot-card');
-
-            if (gridItem) {
-                e.preventDefault();
-                currentTarget = gridItem;
-
-                // Position the menu at mouse location
-                contextMenu.style.left = e.clientX + 'px';
-                contextMenu.style.top = e.clientY + 'px';
-                contextMenu.classList.add('visible');
-
-                const lat = currentTarget.getAttribute('lat').toFixed(coordinatesDecimals);
-                const latDir = lat > 0 ? "N":"S";
-                const lon = currentTarget.getAttribute('lon').toFixed(coordinatesDecimals);
-                const lonDir = lon > 0 ? "E":"W";
-
-                const meteoBlueLink = document.getElementById("meteo-blue-link");
-                const suffix = meteoBlueLink.getAttribute("href").split("?")[1];
-                meteoBlueLink.setAttribute("href", "https://www.meteoblue.com/fr/meteo/semaine/" + lat + latDir + lon + lonDir + "?" + suffix);
-            }
-        });
+        grid.addEventListener('contextmenu', onRightClickOnWeatherGrid);
 
         // Copy value to clipboard when menu item is clicked
         copyCoordinatesItem.addEventListener('click', onCopyCoordinatesClicked);
@@ -505,6 +483,30 @@
             const meteoBlueLink = document.getElementById("meteo-blue-link");
             const link = meteoBlueLink.getAttribute("href").split("?")[0];
             meteoBlueLink.setAttribute("href", link + "?day=" + daysDiff);
+        }
+
+        function onRightClickOnWeatherGrid(e) {
+            // Check if the clicked element or its parent has the grid-item class
+            const gridItem = e.target.closest('.spot-card');
+
+            if (gridItem) {
+                e.preventDefault();
+                currentTarget = gridItem;
+
+                // Position the menu at mouse location
+                contextMenu.style.left = e.clientX + 'px';
+                contextMenu.style.top = e.clientY + 'px';
+                contextMenu.classList.add('visible');
+
+                const lat = currentTarget.getAttribute('lat');
+                const latDir = lat > 0 ? "N":"S";
+                const lon = currentTarget.getAttribute('lon');
+                const lonDir = lon > 0 ? "E":"W";
+
+                const meteoBlueLink = document.getElementById("meteo-blue-link");
+                const suffix = meteoBlueLink.getAttribute("href").split("?")[1];
+                meteoBlueLink.setAttribute("href", "https://www.meteoblue.com/fr/meteo/semaine/" + lat + latDir + lon + lonDir + "?" + suffix);
+            }
         }
 
         function onCopyCoordinatesClicked() {
@@ -611,7 +613,8 @@
                     console.error(`Erreur pour ${spot.name}:`, error);
                     const spotCard = document.createElement('div');
                     spotCard.className = "spot-card ${condition} ${trendClass}";
-                    spotCard.setAttribute('coords', "" + spot.lat + ", " + spot.lon)
+                    spotCard.setAttribute('lat', spot.lat);
+                    spotCard.setAttribute('lon', spot.lon);
                     spotCard.innerHTML = `
                         <div class="spot-header">
                             <div class="spot-name">${spot.name}</div>
