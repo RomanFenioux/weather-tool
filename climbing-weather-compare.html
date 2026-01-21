@@ -232,6 +232,39 @@
             padding: 20px;
             color: #666;
         }
+
+        .context-menu {
+            position: fixed;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
+            min-width: 150px;
+        }
+
+        .context-menu.visible {
+            display: block;
+        }
+
+        .menu-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .menu-item:hover {
+            background: #f0f0f0;
+        }
+
+        .menu-item:first-child {
+            border-radius: 4px 4px 0 0;
+        }
+
+        .menu-item:last-child {
+            border-radius: 0 0 4px 4px;
+        }
         
         .error {
             color: #ff4757;
@@ -298,6 +331,9 @@
                 </div>
             </div>
         </div>
+        <div class="context-menu" id="contextMenu">
+            <div class="menu-item" id="copyValue">📋 Copy Lat, Long coordinates</div>
+        </div>
         <div class="trend-banner" id="trendBanner"></div>
         <div class="weather-grid" id="weatherGrid"></div>
         
@@ -318,6 +354,11 @@
     </div>
 
     <script>
+        const grid = document.getElementById('weatherGrid');
+        const contextMenu = document.getElementById('contextMenu');
+        const copyValueItem = document.getElementById('copyValue');
+        let currentTarget = null;
+
         let spots = [
             { name: "Fontainebleau", lat: 48.4084, lon: 2.6984 },
             { name: "Chamonix", lat: 45.9237, lon: 6.8694 },
@@ -340,6 +381,51 @@
         dateInput.max = maxDate.toISOString().split('T')[0];
 
         dateInput.addEventListener('change', loadWeather);
+
+        // Event delegation: listen on container for right-clicks on grid-item class
+        grid.addEventListener('contextmenu', (e) => {
+            // Check if the clicked element or its parent has the grid-item class
+            const gridItem = e.target.closest('.spot-card');
+
+            if (gridItem) {
+                e.preventDefault();
+                currentTarget = gridItem;
+
+                // Position the menu at mouse location
+                contextMenu.style.left = e.clientX + 'px';
+                contextMenu.style.top = e.clientY + 'px';
+                contextMenu.classList.add('visible');
+            }
+        });
+
+        // Copy value to clipboard when menu item is clicked
+        copyValueItem.addEventListener('click', () => {
+            if (currentTarget) {
+                const value = currentTarget.getAttribute('coords');
+
+                navigator.clipboard.writeText(value).then(() => {
+                    alert(`Copied: ${value}`);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                });
+            }
+
+            contextMenu.classList.remove('visible');
+            currentTarget = null;
+        });
+
+        // Hide menu when clicking anywhere else
+        document.addEventListener('click', () => {
+            contextMenu.classList.remove('visible');
+            currentTarget = null;
+        });
+
+        // Also hide menu on scroll
+        document.addEventListener('scroll', () => {
+            contextMenu.classList.remove('visible');
+            currentTarget = null;
+        });
+
 
         function saveSpots() {
             localStorage.setItem('climbingSpots', JSON.stringify(spots));
@@ -454,6 +540,10 @@
                         throw new Error('Données non disponibles');
                     }
 
+                    if (data.daily.weather_code[0] === null) {
+                        throw new Error('Données non valides');
+                    }
+
                     const tempMax = Math.round(data.daily.temperature_2m_max[0]);
                     const tempMin = Math.round(data.daily.temperature_2m_min[0]);
                     const precipProba = data.daily.precipitation_probability_max[0] || 0;
@@ -464,8 +554,10 @@
                     const weatherIcon = getWeatherIcon(weatherCode);
                     const weatherDesc = getWeatherDescription(weatherCode);
 
-                    return `
-                        <div class="spot-card ${condition} ${trendClass}">
+                    const spotCard = document.createElement('div');
+                    spotCard.className = "spot-card " + condition + " " + trendClass;
+                    spotCard.setAttribute('coords', "" + spot.lat + ", " + spot.lon)
+                    spotCard.innerHTML = `
                             <div class="spot-header">
                                 <div class="spot-name">${spot.name}</div>
                                 <button class="delete-btn" onclick="deleteSpot(${index})">×</button>
@@ -488,23 +580,26 @@
                                     <span>${windSpeed} km/h</span>
                                 </div>
                             </div>
-                        </div>
                     `;
+                    return spotCard;
                 } catch (error) {
                     console.error(`Erreur pour ${spot.name}:`, error);
-                    return `
-                        <div class="spot-card">
-                            <div class="spot-header">
-                                <div class="spot-name">${spot.name}</div>
-                                <button class="delete-btn" onclick="deleteSpot(${index})">×</button>
-                            </div>
-                            <div class="error">Erreur : données indisponibles pour ce spot</div>
+                    const spotCard = document.createElement('div');
+                    spotCard.className = "spot-card ${condition} ${trendClass}";
+                    spotCard.setAttribute('coords', "" + spot.lat + ", " + spot.lon)
+                    spotCard.innerHTML = `
+                        <div class="spot-header">
+                            <div class="spot-name">${spot.name}</div>
+                            <button class="delete-btn" onclick="deleteSpot(${index})">×</button>
                         </div>
-                    `;
+                        <div class="error">Erreur : données indisponibles pour ce spot</div>
+                    `
+                    return spotCard;
                 }
             }));
 
-            grid.innerHTML = weatherCards.join('');
+            grid.innerHTML = '';
+            weatherCards.forEach(card => {grid.appendChild(card)});
         }
 
         loadWeather();
