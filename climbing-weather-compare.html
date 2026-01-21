@@ -333,6 +333,10 @@
         </div>
         <div class="context-menu" id="contextMenu">
             <div class="menu-item" id="copyValue">📋 Copy Lat, Long coordinates</div>
+            <a id="meteo-blue-link" target="_blank" rel="noopener noreferrer" href="https://www.meteoblue.com/fr/meteo/semaine/0.0N0.0E?day=1">
+                <div class="menu-item" id="linkToMeteoBlue">⛅ Go to Meteoblue</div>
+            </a>
+
         </div>
         <div class="trend-banner" id="trendBanner"></div>
         <div class="weather-grid" id="weatherGrid"></div>
@@ -395,6 +399,15 @@
                 contextMenu.style.left = e.clientX + 'px';
                 contextMenu.style.top = e.clientY + 'px';
                 contextMenu.classList.add('visible');
+
+                const lat = currentTarget.getAttribute('lat');
+                const latDir = lat > 0 ? "N":"S";
+                const lon = currentTarget.getAttribute('lon');
+                const lonDir = lon > 0 ? "E":"W";
+
+                const meteoBlueLink = document.getElementById("meteo-blue-link");
+                const suffix = meteoBlueLink.getAttribute("href").split("?")[1];
+                meteoBlueLink.setAttribute("href", "https://www.meteoblue.com/fr/meteo/semaine/" + lat + latDir + lon + lonDir + "?" + suffix);
             }
         });
 
@@ -500,6 +513,27 @@
             return descriptions[weatherCode] || 'Variable';
         }
 
+        function updateMeteoBlueLinkDate(daysDiff) {
+            const meteoBlueLink = document.getElementById("meteo-blue-link");
+            const link = meteoBlueLink.getAttribute("href").split("?")[0];
+            meteoBlueLink.setAttribute("href", link + "?day=" + daysDiff);
+        }
+
+        function onCopyCoordinatesClicked() {
+            if (currentTarget) {
+                const value = "" + currentTarget.getAttribute('lat') + ", " + currentTarget.getAttribute('lon');
+
+                navigator.clipboard.writeText(value).then(() => {
+                    alert(`Copied: ${value}`);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                });
+            }
+
+            contextMenu.classList.remove('visible');
+            currentTarget = null;
+        }
+
         async function loadWeather() {
             const grid = document.getElementById('weatherGrid');
             const banner = document.getElementById('trendBanner')
@@ -513,6 +547,8 @@
             
             const daysDiff = Math.floor((selectedDateObj - today) / (1000 * 60 * 60 * 24));
             const isTrend = daysDiff > 4;
+
+            updateMeteoBlueLinkDate(daysDiff);
 
             const forecastType = isTrend ? 'trend' : 'precise';
             const forecastLabel = isTrend ? '⚠️ Prévision indicative (précision réduite)' : 'Prévision précise';
