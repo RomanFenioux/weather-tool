@@ -345,6 +345,7 @@
                     <input type="text" id="spotName" placeholder="Nom du spot">
                     <input type="text" id="spotLat" placeholder="Latitude (ex: 45.8992)">
                     <input type="text" id="spotLon" placeholder="Longitude (ex: 6.1294)">
+                    <button onclick="selectWithMap()">Use Map</button>
                     <button onclick="addLocation()">Ajouter</button>
                 </div>
             </div>
@@ -383,6 +384,7 @@
         const grid = document.getElementById('weatherGrid');
         const contextMenu = document.getElementById('contextMenu');
         const copyCoordinatesItem = document.getElementById('copyCoordinates');
+        const mapCoordSelector = document.getElementById('mapCoordSelector');
         let currentTarget = null;
 
         const defaultLocations = [
@@ -542,6 +544,7 @@
           // Optional: add/move a marker
           if (marker) map.removeLayer(marker);
           marker = L.marker([lat, lon]).addTo(map);
+          mapCoordSelector.classList.remove("visible")
         }
 
          /**
