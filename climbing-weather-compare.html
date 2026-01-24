@@ -480,6 +480,13 @@
             return descriptions[weatherCode] || 'Variable';
         }
 
+        function windDirToArrow(deg) {
+            const toDeg = (deg + 180) % 360;
+            const arrows = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
+            const index = Math.round(toDeg / 45) % 8;
+            return arrows[index];
+        }
+
         function updateMeteoBlueLinkDate(daysDiff) {
             const meteoBlueLink = document.getElementById("meteo-blue-link");
             const link = meteoBlueLink.getAttribute("href").split("?")[0];
@@ -555,7 +562,7 @@
                     const apiBase = isTrend ? '' : 'models=meteofrance_seamless';
                     const url = `https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lon}` +
                         `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,` +
-                        `weather_code,precipitation_hours,precipitation_sum` +
+                        `weather_code,precipitation_hours,precipitation_sum,wind_direction_10m_dominant,` +
                         `&${apiBase}&timezone=Europe/Paris&start_date=${selectedDate}&end_date=${selectedDate}`;
                     
                     const response = await fetch(url);
@@ -581,6 +588,7 @@
                     const precipHours = data.daily.precipitation_hours[0];
                     const precipSum = data.daily.precipitation_sum[0];
                     const windSpeed = Math.round(data.daily.wind_speed_10m_max[0]);
+                    const windDir = windDirToArrow(data.daily.wind_direction_10m_dominant[0]);
                     const weatherCode = data.daily.weather_code[0];
 
                     const condition = getWeatherCondition(tempMax, precipProba, windSpeed, weatherCode);
@@ -611,7 +619,7 @@
                                 </div>
                                 <div class="weather-item">
                                     <span class="weather-icon">💨</span>
-                                    <span>${windSpeed} km/h</span>
+                                    <span>${windDir} ${windSpeed} km/h</span>
                                 </div>
                             </div>
                     `;
