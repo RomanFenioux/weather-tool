@@ -552,8 +552,11 @@
             const weatherCards = await Promise.all(spots.map(async (spot, index) => {
                 try {
                     // Utiliser meteofrance pour J+1 à J+4, forecast générique pour J+5 à J+10
-                    const apiBase = isTrend ? 'forecast' : 'meteofrance';
-                    const url = `https://api.open-meteo.com/v1/${apiBase}?latitude=${spot.lat}&longitude=${spot.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,weather_code&timezone=Europe/Paris&start_date=${selectedDate}&end_date=${selectedDate}`;
+                    const apiBase = isTrend ? '' : 'models=meteofrance_seamless';
+                    const url = `https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lon}` +
+                        `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,` +
+                        `weather_code,precipitation_hours,precipitation_sum` +
+                        `&${apiBase}&timezone=Europe/Paris&start_date=${selectedDate}&end_date=${selectedDate}`;
                     
                     const response = await fetch(url);
                     
@@ -573,7 +576,10 @@
 
                     const tempMax = Math.round(data.daily.temperature_2m_max[0]);
                     const tempMin = Math.round(data.daily.temperature_2m_min[0]);
-                    const precipProba = data.daily.precipitation_probability_max[0] || 0;
+                    let precipProba = data.daily.precipitation_probability_max[0];
+                    precipProba = precipProba === null? "": "(" + precipProba + "% prob)";
+                    const precipHours = data.daily.precipitation_hours[0];
+                    const precipSum = data.daily.precipitation_sum[0];
                     const windSpeed = Math.round(data.daily.wind_speed_10m_max[0]);
                     const weatherCode = data.daily.weather_code[0];
 
@@ -588,7 +594,7 @@
                     spotCard.innerHTML = `
                             <div class="spot-header">
                                 <div class="spot-name">${spot.name}</div>
-                                <button class="delete-btn" onclick="deleteSpot(${index})">×</button>
+                                <button class="delete-btn" onclick="deleteSpot(${index})">❌</button>
                             </div>
                             <div class="weather-info">
                                 <div class="weather-item">
@@ -601,7 +607,7 @@
                                 </div>
                                 <div class="weather-item">
                                     <span class="weather-icon">💧</span>
-                                    <span>${precipProba}% de pluie</span>
+                                    <span>${precipSum}mm, ${precipHours}h ${precipProba}</span>
                                 </div>
                                 <div class="weather-item">
                                     <span class="weather-icon">💨</span>
