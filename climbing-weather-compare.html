@@ -73,18 +73,18 @@
             font-size: 16px;
         }
         
-        .add-spot-section {
+        .add-location-section {
             flex: 2;
             min-width: 200px;
         }
         
-        .add-spot-form {
+        .add-location-form {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
         }
         
-        .add-spot-form input {
+        .add-location-form input {
             flex: 1;
             padding: 12px;
             border: 2px solid #ddd;
@@ -93,7 +93,7 @@
             min-width: 100px;
         }
 
-       .add-spot-form button {
+       .add-location-form button {
             flex: 1;
             min-width: 80px;
         }
@@ -124,7 +124,7 @@
             margin-top: 20px;
         }
         
-        .spot-card {
+        .location-card {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             border-radius: 15px;
             padding: 20px;
@@ -133,35 +133,35 @@
             transition: transform 0.3s;
         }
         
-        .spot-card:hover {
+        .location-card:hover {
             transform: translateY(-5px);
         }
         
-        .spot-card.good {
+        .location-card.good {
             background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
         }
         
-        .spot-card.average {
+        .location-card.average {
             background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
         }
         
-        .spot-card.bad {
+        .location-card.bad {
             background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
         }
         
-        .spot-card.trend {
+        .location-card.trend {
             opacity: 0.85;
             border: 2px dashed #999;
         }
         
-        .spot-header {
+        .location-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
         
-        .spot-name {
+        .location-name {
             font-size: 1.2em;
             font-weight: 700;
             color: #333;
@@ -324,12 +324,12 @@
                 <input type="date" id="dateInput">
             </div>
             
-            <div class="add-spot-section">
-                <div class="add-spot-form">
+            <div class="add-location-section">
+                <div class="add-location-form">
                     <input type="text" id="spotName" placeholder="Nom du spot">
                     <input type="text" id="spotLat" placeholder="Latitude (ex: 45.8992)">
                     <input type="text" id="spotLon" placeholder="Longitude (ex: 6.1294)">
-                    <button onclick="addSpot()">Ajouter</button>
+                    <button onclick="addLocation()">Ajouter</button>
                 </div>
             </div>
         </div>
@@ -369,16 +369,16 @@
         const copyCoordinatesItem = document.getElementById('copyCoordinates');
         let currentTarget = null;
 
-        const defaultSpots = [
+        const defaultLocations = [
             { name: "Fontainebleau", lat: 48.4084, lon: 2.6984 },
             { name: "Chamonix", lat: 45.9237, lon: 6.8694 },
             { name: "Verdon", lat: 43.7697, lon: 6.3594 }
         ];
-        let spots = defaultSpots;
+        let locations = defaultLocations;
 
-        const savedSpots = localStorage.getItem('climbingSpots');
-        if (savedSpots) {
-            spots = JSON.parse(savedSpots);
+        const savedLocations = localStorage.getItem('climbingSpots');
+        if (savedLocations) {
+            locations = JSON.parse(savedLocations);
         }
 
         const dateInput = document.getElementById('dateInput');
@@ -391,32 +391,38 @@
         maxDate.setDate(maxDate.getDate() + maxForecastDays);
         dateInput.max = maxDate.toISOString().split('T')[0];
 
+        // reload the weather data every time the date is changed
         dateInput.addEventListener('change', loadWeather);
 
-        // Event delegation: listen on container for right-clicks on grid-item class
+        // We show a custom right click menu when clicking on weather cards from the grid
         grid.addEventListener('contextmenu', onRightClickOnWeatherGrid);
 
         // Copy value to clipboard when menu item is clicked
         copyCoordinatesItem.addEventListener('click', onCopyCoordinatesClicked);
 
-        // Hide menu when clicking anywhere else
+        // Hide right click menu when clicking anywhere else
         document.addEventListener('click', () => {
             contextMenu.classList.remove('visible');
             currentTarget = null;
         });
 
-        // Also hide menu on scroll
+        // Hide menu on scroll
         document.addEventListener('scroll', () => {
             contextMenu.classList.remove('visible');
             currentTarget = null;
         });
 
-
-        function saveSpots() {
-            localStorage.setItem('climbingSpots', JSON.stringify(spots));
+        /**
+         * Save the list of locations to local storage
+         */
+        function saveLocations() {
+            localStorage.setItem('climbingSpots', JSON.stringify(locations));
         }
 
-        function addSpot() {
+        /**
+         * Add a new location to the list of saved locations
+         */
+        function addLocation() {
             const name = document.getElementById('spotName').value.trim();
             const lat = parseFloat(document.getElementById('spotLat').value).toFixed(coordinatesDecimals);
             const lon = parseFloat(document.getElementById('spotLon').value).toFixed(coordinatesDecimals);
@@ -426,8 +432,8 @@
                 return;
             }
 
-            spots.push({ name, lat, lon });
-            saveSpots();
+            locations.push({ name, lat, lon });
+            saveLocations();
             
             document.getElementById('spotName').value = '';
             document.getElementById('spotLat').value = '';
@@ -436,14 +442,20 @@
             loadWeather();
         }
 
-        function deleteSpot(index) {
-            if (confirm(`Supprimer ${spots[index].name} ?`)) {
-                spots.splice(index, 1);
-                saveSpots();
+        /**
+         * Delete a location from the list of saved locations
+         */
+        function deleteLocation(index) {
+            if (confirm(`Supprimer ${locations[index].name} ?`)) {
+                locations.splice(index, 1);
+                saveLocations();
                 loadWeather();
             }
         }
 
+        /**
+         * Get the current condition (bad, average, good) from the weather data
+         */
         function getWeatherCondition(maxTemp, precipProba, precipSum, windSpeed, weatherCode) {
             if (precipProba > 70 || precipSum > 8 || windSpeed > 40 || maxTemp < 5 || maxTemp > 35) {
                 return 'bad';
@@ -455,6 +467,9 @@
             return 'good';
         }
 
+        /**
+         * Get the weather icon from the weather code (sun, rain, cloud, etc.)
+         */
         function getWeatherIcon(weatherCode) {
             const icons = {
                 0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
@@ -469,6 +484,9 @@
             return icons[weatherCode] || '🌤️';
         }
 
+        /**
+         * Get the weather description from the weather code
+         */
         function getWeatherDescription(weatherCode) {
             const descriptions = {
                 0: 'Ensoleillé',
@@ -485,6 +503,9 @@
             return descriptions[weatherCode] || 'Variable';
         }
 
+         /**
+         * Get the wind arrow and label from the wind direction value
+         */
         function windDirToArrow(deg) {
             const toDeg = (deg + 180) % 360;
             const arrows = ['↑ S', '↗ SW', '→ W', '↘ NW', '↓ N', '↙ NE', '← E', '↖ SE'];
@@ -492,15 +513,21 @@
             return arrows[index];
         }
 
+         /**
+         * Update the link to the MeteoBlue webpage with the correct date
+         */
         function updateMeteoBlueLinkDate(daysDiff) {
             const meteoBlueLink = document.getElementById("meteo-blue-link");
             const link = meteoBlueLink.getAttribute("href").split("?")[0];
             meteoBlueLink.setAttribute("href", link + "?day=" + daysDiff);
         }
 
+         /**
+         * Show the right clic menu at the mouse location when clicking a location card in the grid
+         */
         function onRightClickOnWeatherGrid(e) {
             // Check if the clicked element or its parent has the grid-item class
-            const gridItem = e.target.closest('.spot-card');
+            const gridItem = e.target.closest('.location-card');
 
             if (gridItem) {
                 e.preventDefault();
@@ -522,6 +549,9 @@
             }
         }
 
+         /**
+         * Copy the coordinate to the clipboard
+         */
         function onCopyCoordinatesClicked() {
             if (currentTarget) {
                 const value = "" + currentTarget.getAttribute('lat') + ", " + currentTarget.getAttribute('lon');
@@ -537,6 +567,9 @@
             currentTarget = null;
         }
 
+         /**
+         * Save the data to localStorage with the given key
+         */
         function savetoCache(key, data) {
             console.log("saving to cache for " + key);
             const cachedWeatherData = {
@@ -546,6 +579,9 @@
             localStorage.setItem(key, JSON.stringify(cachedWeatherData));
         }
 
+        /**
+         * Retrieve the data from localStorage with the given key
+         */
         function getFromCache(key) {
             removeFromCacheIfExpired(key);
             const jsonString = localStorage.getItem(key);
@@ -559,6 +595,9 @@
             return cachedWeatherData.value;
         }
 
+        /**
+         * Remove expired weather data item cached in local storage from key
+         */
         function removeFromCacheIfExpired(key) {
             const jsonString = localStorage.getItem(key);
             if (!jsonString) return;
@@ -570,6 +609,9 @@
             }
         }
 
+        /**
+         * Remove all expired weather data cached in local storage
+         */
         function cleanupExpiredCache() {
             console.log("cleanup cache");
             const keystoCheck = [];
@@ -583,9 +625,12 @@
             keystoCheck.forEach((key) => {removeFromCacheIfExpired(key);});
         }
 
-        async function fetchWeatherData(isTrend, spot, selectedDate) {
+         /**
+         * Fetch the weather data from remote weather service for a given location and date
+         */
+        async function fetchWeatherData(isTrend, location, selectedDate) {
             const apiBase = isTrend ? '' : 'models=meteofrance_seamless';
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lon}` +
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${location.lat}&longitude=${location.lon}` +
                 `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,` +
                 `weather_code,precipitation_hours,precipitation_sum,wind_direction_10m_dominant,` +
                 `&${apiBase}&timezone=Europe/Paris&start_date=${selectedDate}&end_date=${selectedDate}`;
@@ -608,17 +653,23 @@
             return data;
         }
 
-        async function fetchWeatherDataCached(isTrend, spot, selectedDate) {
-            const key = cacheWeatherDataPrefix + spot.name.split(' ').join('_') + "-" + selectedDate;
+         /**
+         * Fetch the weather data with a caching mechanism to reduce api calls
+         */
+        async function fetchWeatherDataCached(isTrend, location, selectedDate) {
+            const key = cacheWeatherDataPrefix + location.name.split(' ').join('_') + "-" + selectedDate;
             let data = getFromCache(key);
             if (data === null) {
-                console.log("fetching from api " + spot.name)
-                data = await fetchWeatherData(isTrend, spot, selectedDate);
+                console.log("fetching from api " + location.name)
+                data = await fetchWeatherData(isTrend, location, selectedDate);
                 savetoCache(key, data)
             }
             return data;
         }
 
+         /**
+         * Populate the weather grid with cards containing the data for each saved location
+         */
         async function loadWeather() {
             const grid = document.getElementById('weatherGrid');
             const banner = document.getElementById('trendBanner');
@@ -643,10 +694,10 @@
 
             grid.innerHTML = '<div class="loading">Chargement des prévisions météo...</div>';
 
-            const weatherCards = await Promise.all(spots.map(async (spot, index) => {
+            const weatherCards = await Promise.all(locations.map(async (location, index) => {
                 try {
                     // Utiliser meteofrance pour J+1 à J+4, forecast générique pour J+5 à J+10
-                    const data = await fetchWeatherDataCached(isTrend, spot, selectedDate);
+                    const data = await fetchWeatherDataCached(isTrend, location, selectedDate);
 
                     const tempMax = Math.round(data.daily.temperature_2m_max[0]);
                     const tempMin = Math.round(data.daily.temperature_2m_min[0]);
@@ -663,13 +714,13 @@
                     const weatherDesc = getWeatherDescription(weatherCode);
 
                     const spotCard = document.createElement('div');
-                    spotCard.className = "spot-card " + condition + " " + trendClass;
-                    spotCard.setAttribute('lat', spot.lat);
-                    spotCard.setAttribute('lon', spot.lon);
+                    spotCard.className = "location-card " + condition + " " + trendClass;
+                    spotCard.setAttribute('lat', location.lat);
+                    spotCard.setAttribute('lon', location.lon);
                     spotCard.innerHTML = `
-                            <div class="spot-header">
-                                <div class="spot-name">${spot.name}</div>
-                                <button class="delete-btn" onclick="deleteSpot(${index})">❌</button>
+                            <div class="location-header">
+                                <div class="location-name">${location.name}</div>
+                                <button class="delete-btn" onclick="deleteLocation(${index})">❌</button>
                             </div>
                             <div class="weather-info">
                                 <div class="weather-item">
@@ -692,15 +743,15 @@
                     `;
                     return spotCard;
                 } catch (error) {
-                    console.error(`Erreur pour ${spot.name}:`, error);
+                    console.error(`Erreur pour ${location.name}:`, error);
                     const spotCard = document.createElement('div');
-                    spotCard.className = "spot-card ${condition} ${trendClass}";
-                    spotCard.setAttribute('lat', spot.lat);
-                    spotCard.setAttribute('lon', spot.lon);
+                    spotCard.className = "location-card ${condition} ${trendClass}";
+                    spotCard.setAttribute('lat', location.lat);
+                    spotCard.setAttribute('lon', location.lon);
                     spotCard.innerHTML = `
-                        <div class="spot-header">
-                            <div class="spot-name">${spot.name}</div>
-                            <button class="delete-btn" onclick="deleteSpot(${index})">×</button>
+                        <div class="location-header">
+                            <div class="location-name">${location.name}</div>
+                            <button class="delete-btn" onclick="deleteLocation(${index})">×</button>
                         </div>
                         <div class="error">Erreur : données indisponibles pour ce spot</div>
                     `
