@@ -667,7 +667,73 @@
             return data;
         }
 
-         /**
+        function processWeatherData(data) {
+            const tempMax = Math.round(data.daily.temperature_2m_max[0]);
+            const tempMin = Math.round(data.daily.temperature_2m_min[0]);
+            let precipProba = data.daily.precipitation_probability_max[0];
+            precipProba = precipProba === null? "": "(" + precipProba + "% prob)";
+            const precipHours = data.daily.precipitation_hours[0];
+            const precipSum = data.daily.precipitation_sum[0];
+            const windSpeed = Math.round(data.daily.wind_speed_10m_max[0]);
+            const windDir = windDirToArrow(data.daily.wind_direction_10m_dominant[0]);
+            const weatherCode = data.daily.weather_code[0];
+
+            return {
+                condition: getWeatherCondition(tempMax, precipProba, precipSum, windSpeed, weatherCode),
+                weatherIcon: getWeatherIcon(weatherCode),
+                weathertext: getWeatherDescription(weatherCode),
+                tempIcon: '🌡️',
+                tempText: `${tempMin}°C - ${tempMax}°C`,
+                precipIcon: '💧',
+                precipText: `${precipSum}mm, ${precipHours}h ${precipProba}`,
+                windIcon: '💨',
+                windText: `${windDir} ${windSpeed} km/h`
+            };
+        }
+
+        function createWeatherItem(icon, text) {
+            const item = document.createElement('div');
+            item.className = 'weather-item';
+
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'weather-icon';
+            iconSpan.textContent = icon;
+
+            const textSpan = document.createElement('span');
+            textSpan.textContent = text;
+
+            item.appendChild(iconSpan);
+            item.appendChild(textSpan);
+            return item;
+        }
+
+        function createWeatherCard(viewModel, trendClass, location, index) {
+            const spotCard = document.createElement('div');
+            spotCard.className = "location-card " + viewModel.condition + " " + trendClass;
+            spotCard.setAttribute('lat', location.lat);
+            spotCard.setAttribute('lon', location.lon);
+
+            const header = document.createElement('div');
+            header.className = 'location-header';
+
+            const locationNameEl = document.createElement('div');
+            locationNameEl.className = 'location-name';
+            locationNameEl.textContent = location.name;
+
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-btn';
+            deleteButton.onclick = () => {
+                deleteLocation(index)
+            };
+            deleteButton.textContent = '❌';
+            header.appendChild(locationNameEl);
+            header.appendChild(deleteButton);
+
+            spotCard.appendChild(header);
+            return spotCard;
+        }
+
+        /**
          * Populate the weather grid with cards containing the data for each saved location
          */
         async function loadWeather() {
@@ -696,80 +762,31 @@
 
             const weatherCards = await Promise.all(locations.map(async (location, index) => {
                 try {
-                    // Utiliser meteofrance pour J+1 à J+4, forecast générique pour J+5 à J+10
+                    // Utilise meteofrance pour J+1 à J+4, forecast générique pour J+5 à J+10
                     const data = await fetchWeatherDataCached(isTrend, location, selectedDate);
 
-                    const tempMax = Math.round(data.daily.temperature_2m_max[0]);
-                    const tempMin = Math.round(data.daily.temperature_2m_min[0]);
-                    let precipProba = data.daily.precipitation_probability_max[0];
-                    precipProba = precipProba === null? "": "(" + precipProba + "% prob)";
-                    const precipHours = data.daily.precipitation_hours[0];
-                    const precipSum = data.daily.precipitation_sum[0];
-                    const windSpeed = Math.round(data.daily.wind_speed_10m_max[0]);
-                    const windDir = windDirToArrow(data.daily.wind_direction_10m_dominant[0]);
-                    const weatherCode = data.daily.weather_code[0];
+                    const viewModel = processWeatherData(data);
+                    const weatherCard = createWeatherCard(viewModel, trendClass, location, index);
 
-                    const condition = getWeatherCondition(tempMax, precipProba, precipSum, windSpeed, weatherCode);
-                    const weatherIcon = getWeatherIcon(weatherCode);
-                    const weatherDesc = getWeatherDescription(weatherCode);
+                    const content = document.createElement('div');
+                    content.className = 'weather-info';
+                    content.appendChild(createWeatherItem(viewModel.weatherIcon, viewModel.weathertext));
+                    content.appendChild(createWeatherItem(viewModel.tempIcon, viewModel.tempText));
+                    content.appendChild(createWeatherItem(viewModel.precipIcon, viewModel.precipText));
+                    content.appendChild(createWeatherItem(viewModel.windIcon, viewModel.windText));
 
-                    const spotCard = document.createElement('div');
-                    spotCard.className = "location-card " + condition + " " + trendClass;
-                    spotCard.setAttribute('lat', location.lat);
-                    spotCard.setAttribute('lon', location.lon);
-
-                    const header = document.createElement('div');
-                    header.className = 'location-header';
-
-                    const locationNameEl = document.createElement('div');
-                    locationNameEl.className = 'location-name';
-                    locationNameEl.textContent = location.name;
-
-                    const deleteButton = document.createElement('button');
-                    deleteButton.className = 'delete-btn';
-                    deleteButton.onclick = () => {deleteLocation(index)};
-                    deleteButton.textContent = '❌';
-                    header.appendChild(locationNameEl);
-                    header.appendChild(deleteButton);
-
-                    const body = document.createElement('div');
-                    body.className = 'weather-info'
-                    body.innerHTML = `
-                        <div class="weather-item">
-                            <span class="weather-icon">${weatherIcon}</span>
-                            <span><strong>${weatherDesc}</strong></span>
-                        </div>
-                        <div class="weather-item">
-                            <span class="weather-icon">🌡️</span>
-                            <span>${tempMin}°C - ${tempMax}°C</span>
-                        </div>
-                        <div class="weather-item">
-                            <span class="weather-icon">💧</span>
-                            <span>${precipSum}mm, ${precipHours}h ${precipProba}</span>
-                        </div>
-                        <div class="weather-item">
-                            <span class="weather-icon">💨</span>
-                            <span>${windDir} ${windSpeed} km/h</span>
-                        </div>
-                    `;
-
-                    spotCard.appendChild(header);
-                    spotCard.appendChild(body);
-                    return spotCard;
+                    weatherCard.appendChild(content);
+                    return weatherCard;
                 } catch (error) {
                     console.error(`Erreur pour ${location.name}:`, error);
-                    const spotCard = document.createElement('div');
-                    spotCard.className = "location-card ${condition} ${trendClass}";
-                    spotCard.setAttribute('lat', location.lat);
-                    spotCard.setAttribute('lon', location.lon);
-                    spotCard.innerHTML = `
-                        <div class="location-header">
-                            <div class="location-name">${location.name}</div>
-                            <button class="delete-btn" onclick="deleteLocation(${index})">×</button>
-                        </div>
-                        <div class="error">Erreur : données indisponibles pour ce spot</div>
-                    `
-                    return spotCard;
+                    const weatherCard = createWeatherCard(viewModel, trendClass, location, index);
+
+                    const content = document.createElement('div')
+                    content.className = 'error';
+                    content.textContent = 'Erreur : données indisponibles pour ce spot';
+
+                    weatherCard.appendChild(content);
+                    return weatherCard;
                 }
             }));
 
