@@ -360,16 +360,21 @@
 
     <script>
         const coordinatesDecimals = 4;
+        const cacheExpirationTime_ms = 3600000;
+        const maxForecastDays = 10;
+        const cacheWeatherDataPrefix = "weather-";
+
         const grid = document.getElementById('weatherGrid');
         const contextMenu = document.getElementById('contextMenu');
         const copyCoordinatesItem = document.getElementById('copyCoordinates');
         let currentTarget = null;
 
-        let spots = [
+        const defaultSpots = [
             { name: "Fontainebleau", lat: 48.4084, lon: 2.6984 },
             { name: "Chamonix", lat: 45.9237, lon: 6.8694 },
             { name: "Verdon", lat: 43.7697, lon: 6.3594 }
         ];
+        let spots = defaultSpots;
 
         const savedSpots = localStorage.getItem('climbingSpots');
         if (savedSpots) {
@@ -383,7 +388,7 @@
         dateInput.min = new Date().toISOString().split('T')[0];
         
         const maxDate = new Date();
-        maxDate.setDate(maxDate.getDate() + 10);
+        maxDate.setDate(maxDate.getDate() + maxForecastDays);
         dateInput.max = maxDate.toISOString().split('T')[0];
 
         dateInput.addEventListener('change', loadWeather);
@@ -482,7 +487,7 @@
 
         function windDirToArrow(deg) {
             const toDeg = (deg + 180) % 360;
-            const arrows = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
+            const arrows = ['↑ S', '↗ SW', '→ W', '↘ NW', '↓ N', '↙ NE', '← E', '↖ SE'];
             const index = Math.round(toDeg / 45) % 8;
             return arrows[index];
         }
@@ -532,6 +537,88 @@
             currentTarget = null;
         }
 
+        function savetoCache(key, data) {
+            console.log("saving to cache for " + key);
+            const cachedWeatherData = {
+                timestamp: Date.now(),
+                value: data
+            };
+            localStorage.setItem(key, JSON.stringify(cachedWeatherData));
+        }
+
+        function getFromCache(key) {
+            removeFromCacheIfExpired(key);
+            const jsonString = localStorage.getItem(key);
+            console.log("checking cache for " + key);
+            if (!jsonString) {
+                console.log("no match found")
+                return null;
+            }
+            const cachedWeatherData = JSON.parse(jsonString);
+            console.log("found " + cachedWeatherData.value)
+            return cachedWeatherData.value;
+        }
+
+        function removeFromCacheIfExpired(key) {
+            const jsonString = localStorage.getItem(key);
+            if (!jsonString) return;
+            const cachedWeatherData = JSON.parse(jsonString);
+            const dataAge = Date.now() - cachedWeatherData.timestamp;
+            if (dataAge > cacheExpirationTime_ms) {
+                console.log("data too old : " + dataAge + ">" + cacheExpirationTime_ms)
+                localStorage.removeItem(key);
+            }
+        }
+
+        function cleanupExpiredCache() {
+            console.log("cleanup cache");
+            const keystoCheck = [];
+            for (let keyIndex = 0; keyIndex < localStorage.length; keyIndex++) {
+                const key = localStorage.key(keyIndex);
+                if (key.startsWith(cacheWeatherDataPrefix)) {
+                    keystoCheck.push(key);
+                }
+            }
+            console.log("found " + keystoCheck.length + " keys to check")
+            keystoCheck.forEach((key) => {removeFromCacheIfExpired(key);});
+        }
+
+        async function fetchWeatherData(isTrend, spot, selectedDate) {
+            const apiBase = isTrend ? '' : 'models=meteofrance_seamless';
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lon}` +
+                `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,` +
+                `weather_code,precipitation_hours,precipitation_sum,wind_direction_10m_dominant,` +
+                `&${apiBase}&timezone=Europe/Paris&start_date=${selectedDate}&end_date=${selectedDate}`;
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error('Erreur API');
+            }
+
+            const data = await response.json();
+
+            if (!data.daily) {
+                throw new Error('Données non disponibles');
+            }
+
+            if (data.daily.weather_code[0] === null) {
+                throw new Error('Données non valides');
+            }
+            return data;
+        }
+
+        async function fetchWeatherDataCached(isTrend, spot, selectedDate) {
+            const key = cacheWeatherDataPrefix + spot.name.split(' ').join('_') + "-" + selectedDate;
+            let data = getFromCache(key);
+            if (data === null) {
+                console.log("fetching from api " + spot.name)
+                data = await fetchWeatherData(isTrend, spot, selectedDate);
+                savetoCache(key, data)
+            }
+            return data;
+        }
+
         async function loadWeather() {
             const grid = document.getElementById('weatherGrid');
             const banner = document.getElementById('trendBanner');
@@ -559,27 +646,7 @@
             const weatherCards = await Promise.all(spots.map(async (spot, index) => {
                 try {
                     // Utiliser meteofrance pour J+1 à J+4, forecast générique pour J+5 à J+10
-                    const apiBase = isTrend ? '' : 'models=meteofrance_seamless';
-                    const url = `https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lon}` +
-                        `&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,` +
-                        `weather_code,precipitation_hours,precipitation_sum,wind_direction_10m_dominant,` +
-                        `&${apiBase}&timezone=Europe/Paris&start_date=${selectedDate}&end_date=${selectedDate}`;
-                    
-                    const response = await fetch(url);
-                    
-                    if (!response.ok) {
-                        throw new Error('Erreur API');
-                    }
-                    
-                    const data = await response.json();
-
-                    if (!data.daily) {
-                        throw new Error('Données non disponibles');
-                    }
-
-                    if (data.daily.weather_code[0] === null) {
-                        throw new Error('Données non valides');
-                    }
+                    const data = await fetchWeatherDataCached(isTrend, spot, selectedDate);
 
                     const tempMax = Math.round(data.daily.temperature_2m_max[0]);
                     const tempMin = Math.round(data.daily.temperature_2m_min[0]);
@@ -645,6 +712,7 @@
             weatherCards.forEach(card => {grid.appendChild(card)});
         }
 
+        cleanupExpiredCache();
         loadWeather();
     </script>
 </body>
