@@ -439,12 +439,12 @@
             }
         }
 
-        function getWeatherCondition(maxTemp, precipProba, windSpeed, weatherCode) {
-            if (precipProba > 70 || windSpeed > 40 || maxTemp < 5 || maxTemp > 35) {
+        function getWeatherCondition(maxTemp, precipProba, precipSum, windSpeed, weatherCode) {
+            if (precipProba > 70 || precipSum > 8 || windSpeed > 40 || maxTemp < 5 || maxTemp > 35) {
                 return 'bad';
             }
             const goodWeatherCode = weatherCode < 4;
-            if (precipProba > 40 || windSpeed > 30 || maxTemp < 10 || maxTemp > 30 || !goodWeatherCode) {
+            if (precipProba > 40 || precipSum > 1 || windSpeed > 30 || maxTemp < 10 || maxTemp > 30 || !goodWeatherCode) {
                 return 'average';
             }
             return 'good';
@@ -591,7 +591,7 @@
                     const windDir = windDirToArrow(data.daily.wind_direction_10m_dominant[0]);
                     const weatherCode = data.daily.weather_code[0];
 
-                    const condition = getWeatherCondition(tempMax, precipProba, windSpeed, weatherCode);
+                    const condition = getWeatherCondition(tempMax, precipProba, precipSum, windSpeed, weatherCode);
                     const weatherIcon = getWeatherIcon(weatherCode);
                     const weatherDesc = getWeatherDescription(weatherCode);
 
