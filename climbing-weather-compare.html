@@ -717,30 +717,44 @@
                     spotCard.className = "location-card " + condition + " " + trendClass;
                     spotCard.setAttribute('lat', location.lat);
                     spotCard.setAttribute('lon', location.lon);
-                    spotCard.innerHTML = `
-                            <div class="location-header">
-                                <div class="location-name">${location.name}</div>
-                                <button class="delete-btn" onclick="deleteLocation(${index})">❌</button>
-                            </div>
-                            <div class="weather-info">
-                                <div class="weather-item">
-                                    <span class="weather-icon">${weatherIcon}</span>
-                                    <span><strong>${weatherDesc}</strong></span>
-                                </div>
-                                <div class="weather-item">
-                                    <span class="weather-icon">🌡️</span>
-                                    <span>${tempMin}°C - ${tempMax}°C</span>
-                                </div>
-                                <div class="weather-item">
-                                    <span class="weather-icon">💧</span>
-                                    <span>${precipSum}mm, ${precipHours}h ${precipProba}</span>
-                                </div>
-                                <div class="weather-item">
-                                    <span class="weather-icon">💨</span>
-                                    <span>${windDir} ${windSpeed} km/h</span>
-                                </div>
-                            </div>
+
+                    const header = document.createElement('div');
+                    header.className = 'location-header';
+
+                    const locationNameEl = document.createElement('div');
+                    locationNameEl.className = 'location-name';
+                    locationNameEl.textContent = location.name;
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'delete-btn';
+                    deleteButton.onclick = () => {deleteLocation(index)};
+                    deleteButton.textContent = '❌';
+                    header.appendChild(locationNameEl);
+                    header.appendChild(deleteButton);
+
+                    const body = document.createElement('div');
+                    body.className = 'weather-info'
+                    body.innerHTML = `
+                        <div class="weather-item">
+                            <span class="weather-icon">${weatherIcon}</span>
+                            <span><strong>${weatherDesc}</strong></span>
+                        </div>
+                        <div class="weather-item">
+                            <span class="weather-icon">🌡️</span>
+                            <span>${tempMin}°C - ${tempMax}°C</span>
+                        </div>
+                        <div class="weather-item">
+                            <span class="weather-icon">💧</span>
+                            <span>${precipSum}mm, ${precipHours}h ${precipProba}</span>
+                        </div>
+                        <div class="weather-item">
+                            <span class="weather-icon">💨</span>
+                            <span>${windDir} ${windSpeed} km/h</span>
+                        </div>
                     `;
+
+                    spotCard.appendChild(header);
+                    spotCard.appendChild(body);
                     return spotCard;
                 } catch (error) {
                     console.error(`Erreur pour ${location.name}:`, error);
