@@ -1,9 +1,9 @@
 # Comparateur meteo de sites d'escalade
 
-L'idée de ce POC vibe codé est de pouvoir comparer rapidement la météo de plusieurs lieux à une date donnée.
-Il est facile de comparer la météo actuelle à plusieurs endroits simultanément, mais je n'ai pas trouvé d'outil pour avoir la même chose à une date future.
+L'idée de cette app est de pouvoir comparer rapidement la météo de plusieurs lieux à une date donnée.
+Un peu dans le style de climbit ou rock climbing weather, mais la liste de spot est gérée par chaque utilisateur.
 
-Cet outil permet d'ajouter des points gps avec un label, et de les affichers avec un code couleur selon la qualité des conditions météos pour une journée escalade.
+Cet outil permet d'ajouter des points gps avec un label, et de les afficher avec un code couleur selon la qualité des conditions météos pour une journée escalade.
 
 <img alt="image" src="doc/Screenshot.png" />
 
