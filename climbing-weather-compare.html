@@ -116,6 +116,10 @@
         button:hover {
             background: #5568d3;
         }
+
+        button:disabled {
+            background: #bcbfcc;
+        }
         
         .weather-grid {
             display: grid;
@@ -389,6 +393,7 @@
 
         // reload the weather data every time the date is changed
         dateInput.addEventListener('change', loadWeather);
+        dateInput.addEventListener('change', updateNavButtonEnabledState);
 
         // We show a custom right click menu when clicking on weather cards from the grid
         grid.addEventListener('contextmenu', onRightClickOnWeatherGrid);
@@ -427,6 +432,26 @@
                 case rightArrowCode:
                     moveDateForward();
                     break;
+            }
+        }
+
+         /**
+         * Disable relevant nav buttons based on date range limits
+         */
+        function updateNavButtonEnabledState() {
+            const backButton = document.getElementById('dateNavBackButton');
+            const forwardButton = document.getElementById('dateNavForwardButton');
+            switch (dateInput.value) {
+                case dateInput.min:
+                    backButton.disabled = true;
+                    break;
+                case dateInput.max:
+                    forwardButton.disabled = true;
+                    break;
+                default:
+                    backButton.disabled = false;
+                    forwardButton.disabled = false;
+
             }
         }
 
