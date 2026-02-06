@@ -1,7 +1,8 @@
 const coordinatesDecimals = 4;
 const cacheExpirationTime_ms = 3600000;
 const maxForecastDays = 10;
-const cacheWeatherDataPrefix = "weather-";
+const cacheWeatherDataPrefix = "climbweatherapp-v1";
+const savedLocationsPrefix = "climbweatherapp-locations-v1";
 
 const grid = document.getElementById('weatherGrid');
 const contextMenu = document.getElementById('contextMenu');
@@ -15,7 +16,7 @@ const defaultLocations = [
 ];
 let locations = defaultLocations;
 
-const savedLocations = localStorage.getItem('climbingSpots');
+const savedLocations = localStorage.getItem(savedLocationsPrefix);
 if (savedLocations) {
     locations = JSON.parse(savedLocations);
 }
@@ -107,7 +108,7 @@ function setupDateInput() {
  * Save the list of locations to local storage
  */
 function saveLocations() {
-    localStorage.setItem('climbingSpots', JSON.stringify(locations));
+    localStorage.setItem(savedLocationsPrefix, JSON.stringify(locations));
 }
 
 /**
