@@ -396,6 +396,7 @@
         // Copy value to clipboard when menu item is clicked
         copyCoordinatesItem.addEventListener('click', onCopyCoordinatesClicked);
 
+        // process keyboard shortcuts, such as changing date with arrow keys
         document.addEventListener('keydown', onKeyDown, false);
 
         // Hide right click menu when clicking anywhere else
@@ -429,6 +430,9 @@
             }
         }
 
+        /**
+         * Configure the date input with date range and default selected date
+         */
         function setupDateInput() {
             const today = new Date();
             dateInput.min = today.toISOString().split('T')[0];
@@ -483,11 +487,17 @@
             }
         }
 
+         /**
+         * Move the selected date 1 day backward
+         */
         function moveDateBackward() {
             dateInput.stepDown();
             dateInput.dispatchEvent(new Event('change'));
         }
 
+        /**
+         * Move the selected date 1 day forward
+         */
         function moveDateForward() {
             dateInput.stepUp();
             dateInput.dispatchEvent(new Event('change'));
@@ -707,6 +717,9 @@
             return data;
         }
 
+         /**
+         * Process the API data into data usable to create the weather cards (icons and descriptions)
+         */
         function processWeatherData(data) {
             const tempMax = Math.round(data.daily.temperature_2m_max[0]);
             const tempMin = Math.round(data.daily.temperature_2m_min[0]);
@@ -731,6 +744,9 @@
             };
         }
 
+        /**
+         * Create an item row for the weather card with an icon and description
+         */
         function createWeatherItem(icon, text) {
             const item = document.createElement('div');
             item.className = 'weather-item';
@@ -747,6 +763,9 @@
             return item;
         }
 
+        /**
+         * Create a weather card for a given location
+         */
         function createWeatherCard(viewModel, trendClass, location, index) {
             const spotCard = document.createElement('div');
             spotCard.className = "location-card " + viewModel.condition + " " + trendClass;
