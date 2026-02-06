@@ -168,7 +168,7 @@ function getWeatherCondition(maxTemp, precipProba, precipSum, windSpeed, weather
         return 'bad';
     }
     const goodWeatherCode = weatherCode < 4;
-    if (precipProba > 40 || precipSum > 1 || windSpeed > 30 || maxTemp < 10 || maxTemp > 30 || !goodWeatherCode) {
+    if (precipProba > 40 || precipSum > 1 || windSpeed > 30 || maxTemp < 8 || maxTemp > 28 || !goodWeatherCode) {
         return 'average';
     }
     return 'good';
