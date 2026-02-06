@@ -116,6 +116,10 @@
         button:hover {
             background: #5568d3;
         }
+
+        button:disabled {
+            background: #bcbfcc;
+        }
         
         .weather-grid {
             display: grid;
@@ -323,7 +327,10 @@
             <div class="date-selector">
                 <input type="date" id="dateInput">
             </div>
-            
+            <div class="date-navigation">
+                <button id="dateNavBackButton" onclick="moveDateBackward()">◀</button>
+                <button id="dateNavForwardButton" onclick="moveDateForward()">▶</button>
+            </div>
             <div class="add-location-section">
                 <div class="add-location-form">
                     <input type="text" id="spotName" placeholder="Nom du spot">
@@ -382,23 +389,20 @@
         }
 
         const dateInput = document.getElementById('dateInput');
-        const today = new Date();
-        today.setDate(today.getDate() + 1);
-        dateInput.value = today.toISOString().split('T')[0];
-        dateInput.min = new Date().toISOString().split('T')[0];
-        
-        const maxDate = new Date();
-        maxDate.setDate(maxDate.getDate() + maxForecastDays);
-        dateInput.max = maxDate.toISOString().split('T')[0];
+        setupDateInput();
 
         // reload the weather data every time the date is changed
         dateInput.addEventListener('change', loadWeather);
+        dateInput.addEventListener('change', updateNavButtonEnabledState);
 
         // We show a custom right click menu when clicking on weather cards from the grid
         grid.addEventListener('contextmenu', onRightClickOnWeatherGrid);
 
         // Copy value to clipboard when menu item is clicked
         copyCoordinatesItem.addEventListener('click', onCopyCoordinatesClicked);
+
+        // process keyboard shortcuts, such as changing date with arrow keys
+        document.addEventListener('keydown', onKeyDown, false);
 
         // Hide right click menu when clicking anywhere else
         document.addEventListener('click', () => {
@@ -411,6 +415,61 @@
             contextMenu.classList.remove('visible');
             currentTarget = null;
         });
+
+        cleanupExpiredCache();
+        loadWeather();
+
+        /**
+         * Process key shortcuts
+         */
+        function onKeyDown(e) {
+            leftArrowCode = 37;
+            rightArrowCode = 39;
+            switch (e.keyCode) {
+                case leftArrowCode:
+                    moveDateBackward();
+                    break;
+                case rightArrowCode:
+                    moveDateForward();
+                    break;
+            }
+        }
+
+         /**
+         * Disable relevant nav buttons based on date range limits
+         */
+        function updateNavButtonEnabledState() {
+            const backButton = document.getElementById('dateNavBackButton');
+            const forwardButton = document.getElementById('dateNavForwardButton');
+            switch (dateInput.value) {
+                case dateInput.min:
+                    backButton.disabled = true;
+                    break;
+                case dateInput.max:
+                    forwardButton.disabled = true;
+                    break;
+                default:
+                    backButton.disabled = false;
+                    forwardButton.disabled = false;
+
+            }
+        }
+
+        /**
+         * Configure the date input with date range and default selected date
+         */
+        function setupDateInput() {
+            const today = new Date();
+            dateInput.min = today.toISOString().split('T')[0];
+
+            const defaultSelectedDate = new Date()
+            defaultSelectedDate.setDate(today.getDate() + 1);
+            dateInput.value = defaultSelectedDate.toISOString().split('T')[0];
+
+            const maxDate = new Date();
+            maxDate.setDate(today.getDate() + maxForecastDays);
+            dateInput.max = maxDate.toISOString().split('T')[0];
+        }
 
         /**
          * Save the list of locations to local storage
@@ -451,6 +510,22 @@
                 saveLocations();
                 loadWeather();
             }
+        }
+
+         /**
+         * Move the selected date 1 day backward
+         */
+        function moveDateBackward() {
+            dateInput.stepDown();
+            dateInput.dispatchEvent(new Event('change'));
+        }
+
+        /**
+         * Move the selected date 1 day forward
+         */
+        function moveDateForward() {
+            dateInput.stepUp();
+            dateInput.dispatchEvent(new Event('change'));
         }
 
         /**
@@ -667,6 +742,9 @@
             return data;
         }
 
+         /**
+         * Process the API data into data usable to create the weather cards (icons and descriptions)
+         */
         function processWeatherData(data) {
             const tempMax = Math.round(data.daily.temperature_2m_max[0]);
             const tempMin = Math.round(data.daily.temperature_2m_min[0]);
@@ -691,6 +769,9 @@
             };
         }
 
+        /**
+         * Create an item row for the weather card with an icon and description
+         */
         function createWeatherItem(icon, text) {
             const item = document.createElement('div');
             item.className = 'weather-item';
@@ -707,6 +788,9 @@
             return item;
         }
 
+        /**
+         * Create a weather card for a given location
+         */
         function createWeatherCard(viewModel, trendClass, location, index) {
             const spotCard = document.createElement('div');
             spotCard.className = "location-card " + viewModel.condition + " " + trendClass;
@@ -793,9 +877,6 @@
             grid.innerHTML = '';
             weatherCards.forEach(card => {grid.appendChild(card)});
         }
-
-        cleanupExpiredCache();
-        loadWeather();
     </script>
 </body>
 </html>
