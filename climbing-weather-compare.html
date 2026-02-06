@@ -323,7 +323,10 @@
             <div class="date-selector">
                 <input type="date" id="dateInput">
             </div>
-            
+            <div class="date-navigation">
+                <button id="dateNavBackButton" onclick="moveDateBackward()">◀</button>
+                <button id="dateNavForwardButton" onclick="moveDateForward()">▶</button>
+            </div>
             <div class="add-location-section">
                 <div class="add-location-form">
                     <input type="text" id="spotName" placeholder="Nom du spot">
@@ -382,14 +385,7 @@
         }
 
         const dateInput = document.getElementById('dateInput');
-        const today = new Date();
-        today.setDate(today.getDate() + 1);
-        dateInput.value = today.toISOString().split('T')[0];
-        dateInput.min = new Date().toISOString().split('T')[0];
-        
-        const maxDate = new Date();
-        maxDate.setDate(maxDate.getDate() + maxForecastDays);
-        dateInput.max = maxDate.toISOString().split('T')[0];
+        setupDateInput();
 
         // reload the weather data every time the date is changed
         dateInput.addEventListener('change', loadWeather);
@@ -411,6 +407,19 @@
             contextMenu.classList.remove('visible');
             currentTarget = null;
         });
+
+        function setupDateInput() {
+            const today = new Date();
+            dateInput.min = today.toISOString().split('T')[0];
+
+            const defaultSelectedDate = new Date()
+            defaultSelectedDate.setDate(today.getDate() + 1);
+            dateInput.value = defaultSelectedDate.toISOString().split('T')[0];
+
+            const maxDate = new Date();
+            maxDate.setDate(today.getDate() + maxForecastDays);
+            dateInput.max = maxDate.toISOString().split('T')[0];
+        }
 
         /**
          * Save the list of locations to local storage
@@ -451,6 +460,16 @@
                 saveLocations();
                 loadWeather();
             }
+        }
+
+        function moveDateBackward() {
+            dateInput.stepDown();
+            dateInput.dispatchEvent(new Event('change'));
+        }
+
+        function moveDateForward() {
+            dateInput.stepUp();
+            dateInput.dispatchEvent(new Event('change'));
         }
 
         /**
