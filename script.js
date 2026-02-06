@@ -419,7 +419,8 @@ function createWeatherItem(icon, text) {
  */
 function createWeatherCard(viewModel, trendClass, location, index) {
     const spotCard = document.createElement('div');
-    spotCard.className = "location-card " + viewModel.condition + " " + trendClass;
+    const condition = viewModel !== null ? viewModel.condition: "";
+    spotCard.className = `location-card ${condition} ${trendClass}`;
     spotCard.setAttribute('lat', location.lat);
     spotCard.setAttribute('lon', location.lon);
 
@@ -489,6 +490,7 @@ async function loadWeather() {
             return weatherCard;
         } catch (error) {
             console.error(`Erreur pour ${location.name}:`, error);
+            const viewModel = null;
             const weatherCard = createWeatherCard(viewModel, trendClass, location, index);
 
             const content = document.createElement('div')
