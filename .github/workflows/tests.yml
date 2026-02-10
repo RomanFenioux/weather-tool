@@ -22,11 +22,3 @@ jobs:
 
       - name: Run tests
         run: npm test
-
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Trigger GitHub Pages Deploy
-        run: echo "Tests passed, proceeding to deployment..."
