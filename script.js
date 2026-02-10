@@ -9,12 +9,20 @@ const contextMenu = document.getElementById('contextMenu');
 const copyCoordinatesItem = document.getElementById('copyCoordinates');
 let currentTarget = null;
 
-const defaultLocations = [
-    {name: "Fontainebleau", lat: 48.4084, lon: 2.6984},
+let locations = [
     {name: "Chamonix", lat: 45.9237, lon: 6.8694},
-    {name: "Verdon", lat: 43.7697, lon: 6.3594}
+    {name: "Verdon", lat: 43.7697, lon: 6.3594},
+    {name: "Calanque sormiou", lat: 43.2143, lon: 5.4196},
+    {name: "Crept", lat: 45.7871, lon: 5.4914},
+    {name: "Seynes", lat: 44.1186, lon: 4.2799},
+    {name: "Buoux", lat: 43.8233, lon: 5.3811},
+    {name: "Gorges de la Jonte", lat: 44.1917, lon: 3.2050},
+    {name: "Omblèze", lat: 44.8336, lon: 5.1950},
+    {name: "Doizieux", lat: 45.4101, lon: 4.5796},
+    {name: "Saou", lat: 44.6508, lon: 5.0728},
+    {name: "Presles", lat: 45.0705, lon: 5.4194},
+    {name: "Vergisson", lat: 46.3141, lon: 4.7160}
 ];
-let locations = defaultLocations;
 
 const savedLocations = localStorage.getItem(savedLocationsPrefix);
 if (savedLocations) {
@@ -420,7 +428,7 @@ function createWeatherItem(icon, text) {
  */
 function createWeatherCard(viewModel, trendClass, location, index) {
     const spotCard = document.createElement('div');
-    const condition = viewModel !== null ? viewModel.condition: "";
+    const condition = viewModel !== null ? viewModel.condition : "";
     spotCard.className = `location-card ${condition} ${trendClass}`;
     spotCard.setAttribute('lat', location.lat);
     spotCard.setAttribute('lon', location.lon);
