@@ -1,13 +1,19 @@
-const coordinatesDecimals = 4;
-const cacheExpirationTime_ms = 3600000;
-const maxForecastDays = 10;
-const cacheWeatherDataPrefix = "climbweatherapp-v1";
-const savedLocationsPrefix = "climbweatherapp-locations-v1";
+const UI = {
+    grid: null,
+    contextMenu: null,
+    copyCoordinatesItem: null,
+    dateInput: null,
+    currentTarget: null,
+    trendBanner: null,
+}
 
-const grid = document.getElementById('weatherGrid');
-const contextMenu = document.getElementById('contextMenu');
-const copyCoordinatesItem = document.getElementById('copyCoordinates');
-let currentTarget = null;
+const Config = {
+    coordinatesDecimals: 4,
+    cacheExpirationTime_ms: 3600000,
+    maxForecastDays: 10,
+    cacheWeatherDataPrefix: "climbweatherapp-v1-",
+    savedLocationsPrefix: "climbweatherapp-locations-v1",
+}
 
 let locations = [
     {name: "Chamonix", lat: 45.9237, lon: 6.8694},
@@ -24,41 +30,49 @@ let locations = [
     {name: "Vergisson", lat: 46.3141, lon: 4.7160}
 ];
 
-const savedLocations = localStorage.getItem(savedLocationsPrefix);
-if (savedLocations) {
-    locations = JSON.parse(savedLocations);
+function initApp() {
+    UI.grid = document.getElementById('weatherGrid');
+    UI.contextMenu = document.getElementById('contextMenu');
+    UI.copyCoordinatesItem = document.getElementById('copyCoordinates');
+    UI.dateInput = document.getElementById('dateInput');
+    UI.trendBanner = document.getElementById('trendBanner');
+
+    const savedLocations = localStorage.getItem(Config.savedLocationsPrefix);
+    if (savedLocations) {
+        locations = JSON.parse(savedLocations);
+    }
+    setupDateInput();
+
+    // reload the weather data every time the date is changed
+    UI.dateInput.addEventListener('change', loadWeather);
+    UI.dateInput.addEventListener('change', updateNavButtonEnabledState);
+
+    // We show a custom right click menu when clicking on weather cards from the grid
+    UI.grid.addEventListener('contextmenu', onRightClickOnWeatherGrid);
+
+    // Copy value to clipboard when menu item is clicked
+    UI.copyCoordinatesItem.addEventListener('click', onCopyCoordinatesClicked);
+
+    // process keyboard shortcuts, such as changing date with arrow keys
+    document.addEventListener('keydown', onKeyDown, false);
+
+    // Hide right click menu when clicking anywhere else
+    document.addEventListener('click', () => {
+        UI.contextMenu.classList.remove('visible');
+        UI.currentTarget = null;
+    });
+
+    // Hide menu on scroll
+    document.addEventListener('scroll', () => {
+        UI.contextMenu.classList.remove('visible');
+        UI.currentTarget = null;
+    });
+
+    cleanupExpiredCache();
+    loadWeather();
+
 }
 
-const dateInput = document.getElementById('dateInput');
-setupDateInput();
-
-// reload the weather data every time the date is changed
-dateInput.addEventListener('change', loadWeather);
-dateInput.addEventListener('change', updateNavButtonEnabledState);
-
-// We show a custom right click menu when clicking on weather cards from the grid
-grid.addEventListener('contextmenu', onRightClickOnWeatherGrid);
-
-// Copy value to clipboard when menu item is clicked
-copyCoordinatesItem.addEventListener('click', onCopyCoordinatesClicked);
-
-// process keyboard shortcuts, such as changing date with arrow keys
-document.addEventListener('keydown', onKeyDown, false);
-
-// Hide right click menu when clicking anywhere else
-document.addEventListener('click', () => {
-    contextMenu.classList.remove('visible');
-    currentTarget = null;
-});
-
-// Hide menu on scroll
-document.addEventListener('scroll', () => {
-    contextMenu.classList.remove('visible');
-    currentTarget = null;
-});
-
-cleanupExpiredCache();
-loadWeather();
 
 /**
  * Process key shortcuts
@@ -82,11 +96,11 @@ function onKeyDown(e) {
 function updateNavButtonEnabledState() {
     const backButton = document.getElementById('dateNavBackButton');
     const forwardButton = document.getElementById('dateNavForwardButton');
-    switch (dateInput.value) {
-        case dateInput.min:
+    switch (UI.dateInput.value) {
+        case UI.dateInput.min:
             backButton.disabled = true;
             break;
-        case dateInput.max:
+        case UI.dateInput.max:
             forwardButton.disabled = true;
             break;
         default:
@@ -101,22 +115,22 @@ function updateNavButtonEnabledState() {
  */
 function setupDateInput() {
     const today = new Date();
-    dateInput.min = today.toISOString().split('T')[0];
+    UI.dateInput.min = today.toISOString().split('T')[0];
 
     const defaultSelectedDate = new Date()
     defaultSelectedDate.setDate(today.getDate() + 1);
-    dateInput.value = defaultSelectedDate.toISOString().split('T')[0];
+    UI.dateInput.value = defaultSelectedDate.toISOString().split('T')[0];
 
     const maxDate = new Date();
-    maxDate.setDate(today.getDate() + maxForecastDays);
-    dateInput.max = maxDate.toISOString().split('T')[0];
+    maxDate.setDate(today.getDate() + Config.maxForecastDays);
+    UI.dateInput.max = maxDate.toISOString().split('T')[0];
 }
 
 /**
  * Save the list of locations to local storage
  */
 function saveLocations() {
-    localStorage.setItem(savedLocationsPrefix, JSON.stringify(locations));
+    localStorage.setItem(Config.savedLocationsPrefix, JSON.stringify(locations));
 }
 
 /**
@@ -124,8 +138,8 @@ function saveLocations() {
  */
 function addLocation() {
     const name = document.getElementById('spotName').value.trim();
-    const lat = parseFloat(document.getElementById('spotLat').value).toFixed(coordinatesDecimals);
-    const lon = parseFloat(document.getElementById('spotLon').value).toFixed(coordinatesDecimals);
+    const lat = parseFloat(document.getElementById('spotLat').value).toFixed(Config.coordinatesDecimals);
+    const lon = parseFloat(document.getElementById('spotLon').value).toFixed(Config.coordinatesDecimals);
 
     if (!name || isNaN(lat) || isNaN(lon)) {
         alert('Veuillez remplir tous les champs correctement');
@@ -157,16 +171,16 @@ function deleteLocation(index) {
  * Move the selected date 1 day backward
  */
 function moveDateBackward() {
-    dateInput.stepDown();
-    dateInput.dispatchEvent(new Event('change'));
+    UI.dateInput.stepDown();
+    UI.dateInput.dispatchEvent(new Event('change'));
 }
 
 /**
  * Move the selected date 1 day forward
  */
 function moveDateForward() {
-    dateInput.stepUp();
-    dateInput.dispatchEvent(new Event('change'));
+    UI.dateInput.stepUp();
+    UI.dateInput.dispatchEvent(new Event('change'));
 }
 
 /**
@@ -176,11 +190,11 @@ function getWeatherCondition(maxTemp, precipSum, windSpeed, weatherCode) {
     const tempScore = getTempScore(maxTemp);
     const windScore = getWindScore(windSpeed);
     const precipScore = getPrecipScore(precipSum);
-    if (min(tempScore, windScore, precipScore) < 0.2) {
+    if (Math.min(tempScore, windScore, precipScore) < 0.2) {
         return 'bad';
     }
     const goodWeatherCode = weatherCode < 4;
-    if ( ( min(tempScore, windScore, precipScore) < 0.5 ) || !goodWeatherCode) {
+    if ( ( Math.min(tempScore, windScore, precipScore) < 0.5 ) || !goodWeatherCode) {
         return 'average';
     }
     return 'good';
@@ -250,16 +264,16 @@ function onRightClickOnWeatherGrid(e) {
 
     if (gridItem) {
         e.preventDefault();
-        currentTarget = gridItem;
+        UI.currentTarget = gridItem;
 
         // Position the menu at mouse location
-        contextMenu.style.left = e.clientX + 'px';
-        contextMenu.style.top = e.clientY + 'px';
-        contextMenu.classList.add('visible');
+        UI.contextMenu.style.left = e.clientX + 'px';
+        UI.contextMenu.style.top = e.clientY + 'px';
+        UI.contextMenu.classList.add('visible');
 
-        const lat = currentTarget.getAttribute('lat');
+        const lat = UI.currentTarget.getAttribute('lat');
         const latDir = lat > 0 ? "N" : "S";
-        const lon = currentTarget.getAttribute('lon');
+        const lon = UI.currentTarget.getAttribute('lon');
         const lonDir = lon > 0 ? "E" : "W";
 
         const meteoBlueLink = document.getElementById("meteo-blue-link");
@@ -272,8 +286,8 @@ function onRightClickOnWeatherGrid(e) {
  * Copy the coordinate to the clipboard
  */
 function onCopyCoordinatesClicked() {
-    if (currentTarget) {
-        const value = "" + currentTarget.getAttribute('lat') + ", " + currentTarget.getAttribute('lon');
+    if (UI.currentTarget) {
+        const value = "" + UI.currentTarget.getAttribute('lat') + ", " + UI.currentTarget.getAttribute('lon');
 
         navigator.clipboard.writeText(value).then(() => {
             alert(`Copied: ${value}`);
@@ -282,8 +296,8 @@ function onCopyCoordinatesClicked() {
         });
     }
 
-    contextMenu.classList.remove('visible');
-    currentTarget = null;
+    UI.contextMenu.classList.remove('visible');
+    UI.currentTarget = null;
 }
 
 /**
@@ -318,7 +332,7 @@ function removeFromCacheIfExpired(key) {
     if (!jsonString) return;
     const cachedWeatherData = JSON.parse(jsonString);
     const dataAge = Date.now() - cachedWeatherData.timestamp;
-    if (dataAge > cacheExpirationTime_ms) {
+    if (dataAge > Config.cacheExpirationTime_ms) {
         localStorage.removeItem(key);
     }
 }
@@ -330,7 +344,7 @@ function cleanupExpiredCache() {
     const keystoCheck = [];
     for (let keyIndex = 0; keyIndex < localStorage.length; keyIndex++) {
         const key = localStorage.key(keyIndex);
-        if (key.startsWith(cacheWeatherDataPrefix)) {
+        if (key.startsWith(Config.cacheWeatherDataPrefix)) {
             keystoCheck.push(key);
         }
     }
@@ -371,7 +385,7 @@ async function fetchWeatherData(isTrend, location, selectedDate) {
  * Fetch the weather data with a caching mechanism to reduce api calls
  */
 async function fetchWeatherDataCached(isTrend, location, selectedDate) {
-    const key = cacheWeatherDataPrefix + location.name.split(' ').join('_') + "-" + selectedDate;
+    const key = Config.cacheWeatherDataPrefix + location.name.split(' ').join('_') + "-" + selectedDate;
     let data = getFromCache(key);
     if (data === null) {
         data = await fetchWeatherData(isTrend, location, selectedDate);
@@ -497,9 +511,9 @@ function createWeatherCard(viewModel, trendClass, location, index) {
  * Populate the weather grid with cards containing the data for each saved location
  */
 async function loadWeather() {
-    const grid = document.getElementById('weatherGrid');
-    const banner = document.getElementById('trendBanner');
-    const selectedDate = dateInput.value;
+    const grid = UI.grid;
+    const banner = UI.trendBanner;
+    const selectedDate = UI.dateInput.value;
 
     if (!selectedDate) return;
 
@@ -555,4 +569,9 @@ async function loadWeather() {
     weatherCards.forEach(card => {
         grid.appendChild(card)
     });
+}
+
+// For testing with node/jest
+if (typeof module !== 'undefined') {
+    module.exports = { getTempScore, getWindScore, getPrecipScore, computeLinearRating, getWeatherCondition };
 }

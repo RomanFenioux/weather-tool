@@ -1,0 +1,27 @@
+{
+  "name": "meteo_tool",
+  "version": "1.0.0",
+  "description": "L'idée de cette app est de pouvoir comparer rapidement la météo de plusieurs lieux à une date donnée.\r Un peu dans le style de climbit ou rock climbing weather, mais la liste de spot est gérée par chaque utilisateur.",
+  "main": "script.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RomanFenioux/weather-tool.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/RomanFenioux/weather-tool/issues"
+  },
+  "homepage": "https://github.com/RomanFenioux/weather-tool#readme",
+  "devDependencies": {
+    "jest": "^30.2.0"
+  }
+}
