@@ -172,12 +172,15 @@ function moveDateForward() {
 /**
  * Get the current condition (bad, average, good) from the weather data
  */
-function getWeatherCondition(maxTemp, precipProba, precipSum, windSpeed, weatherCode) {
-    if (precipProba > 70 || precipSum > 8 || windSpeed > 40 || maxTemp < 5 || maxTemp > 35) {
+function getWeatherCondition(maxTemp, precipSum, windSpeed, weatherCode) {
+    const tempScore = getTempScore(maxTemp);
+    const windScore = getWindScore(windSpeed);
+    const precipScore = getPrecipScore(precipSum);
+    if (min(tempScore, windScore, precipScore) < 0.2) {
         return 'bad';
     }
     const goodWeatherCode = weatherCode < 4;
-    if (precipProba > 40 || precipSum > 1 || windSpeed > 30 || maxTemp < 8 || maxTemp > 28 || !goodWeatherCode) {
+    if ( ( min(tempScore, windScore, precipScore) < 0.5 ) || !goodWeatherCode) {
         return 'average';
     }
     return 'good';
@@ -392,7 +395,7 @@ function processWeatherData(data) {
     const weatherCode = data.daily.weather_code[0];
 
     return {
-        condition: getWeatherCondition(tempMax, precipProba, precipSum, windSpeed, weatherCode),
+        condition: getWeatherCondition(tempMax, precipSum, windSpeed, weatherCode),
         weatherIcon: getWeatherIcon(weatherCode),
         weathertext: getWeatherDescription(weatherCode),
         tempIcon: '🌡️',
@@ -402,6 +405,43 @@ function processWeatherData(data) {
         windIcon: '💨',
         windText: `${windDir} ${windSpeed} km/h`
     };
+}
+
+function computeLinearRating(inputValue, bestValue, worstValue) {
+    return Math.max(Math.min(1-(inputValue-bestValue)/((worstValue-bestValue)), 1), 0);
+}
+
+// Compute a score between 0 and 1 for wind conditions
+function getWindScore(windSpeed) {
+    // we want a rating of zero if speed is above 50 km/h, 1 if wind is below 10 km/h
+    const best = 10;
+    const worst = 50;
+    return computeLinearRating(windSpeed, best, worst);
+}
+
+// Compute a score between 0 and 1 precipitation
+function getPrecipScore(precipSum) {
+    // we want a rating of zero if speed is above 50 km/h, 1 if wind is below 10 km/h
+    const best = 0;
+    const worst = 10;
+    return computeLinearRating(precipSum, best, worst);
+}
+
+// Compute a score between 0 and 1 for temperature
+function getTempScore(maxTemp) {
+    // ideal temperature is when max temperature is between 10 and 20
+    if (maxTemp < 10) {
+        const best = 10;
+        const worst = 0;
+        return computeLinearRating(maxTemp, best, worst);
+
+    }
+    if (maxTemp > 20) {
+        const best = 20;
+        const worst = 35;
+        return computeLinearRating(maxTemp, best, worst);
+    }
+    return 1;
 }
 
 /**
