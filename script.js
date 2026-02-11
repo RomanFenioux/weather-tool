@@ -194,7 +194,7 @@ function getWeatherCondition(maxTemp, precipSum, windSpeed, weatherCode) {
         return 'bad';
     }
     const goodWeatherCode = weatherCode < 4;
-    if ( ( Math.min(tempScore, windScore, precipScore) < 0.5 ) || !goodWeatherCode) {
+    if ((Math.min(tempScore, windScore, precipScore) < 0.5) || !goodWeatherCode) {
         return 'average';
     }
     return 'good';
@@ -422,7 +422,7 @@ function processWeatherData(data) {
 }
 
 function computeLinearRating(inputValue, bestValue, worstValue) {
-    return Math.max(Math.min(1-(inputValue-bestValue)/((worstValue-bestValue)), 1), 0);
+    return Math.max(Math.min(1 - (inputValue - bestValue) / ((worstValue - bestValue)), 1), 0);
 }
 
 // Compute a score between 0 and 1 for wind conditions
@@ -573,5 +573,5 @@ async function loadWeather() {
 
 // For testing with node/jest
 if (typeof module !== 'undefined') {
-    module.exports = { getTempScore, getWindScore, getPrecipScore, computeLinearRating, getWeatherCondition };
+    module.exports = {getTempScore, getWindScore, getPrecipScore, computeLinearRating, getWeatherCondition};
 }
