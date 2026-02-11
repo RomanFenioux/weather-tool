@@ -56,6 +56,13 @@ function initApp() {
     // process keyboard shortcuts, such as changing date with arrow keys
     document.addEventListener('keydown', onKeyDown, false);
 
+    // prevent keyboard shortcuts when an input is selected
+    document.querySelectorAll('input').forEach(
+        el => el.addEventListener('keydown', e => {
+            e.stopPropagation();
+        })
+    )
+
     // Hide right click menu when clicking anywhere else
     document.addEventListener('click', () => {
         UI.contextMenu.classList.remove('visible');
@@ -78,13 +85,14 @@ function initApp() {
  * Process key shortcuts
  */
 function onKeyDown(e) {
-    leftArrowCode = 37;
-    rightArrowCode = 39;
-    switch (e.keyCode) {
-        case leftArrowCode:
+    if (e.defaultPrevented) {
+        return; // Do nothing if the event was already processed
+    }
+    switch (e.key) {
+        case "ArrowLeft":
             moveDateBackward();
             break;
-        case rightArrowCode:
+        case "ArrowRight":
             moveDateForward();
             break;
     }
@@ -194,7 +202,7 @@ function getWeatherCondition(maxTemp, precipSum, windSpeed, weatherCode) {
         return 'bad';
     }
     const goodWeatherCode = weatherCode < 4;
-    if ( ( Math.min(tempScore, windScore, precipScore) < 0.5 ) || !goodWeatherCode) {
+    if ((Math.min(tempScore, windScore, precipScore) < 0.5) || !goodWeatherCode) {
         return 'average';
     }
     return 'good';
@@ -422,7 +430,7 @@ function processWeatherData(data) {
 }
 
 function computeLinearRating(inputValue, bestValue, worstValue) {
-    return Math.max(Math.min(1-(inputValue-bestValue)/((worstValue-bestValue)), 1), 0);
+    return Math.max(Math.min(1 - (inputValue - bestValue) / ((worstValue - bestValue)), 1), 0);
 }
 
 // Compute a score between 0 and 1 for wind conditions
@@ -492,6 +500,7 @@ function createWeatherCard(viewModel, trendClass, location, index) {
 
     const locationNameEl = document.createElement('div');
     locationNameEl.className = 'location-name';
+    locationNameEl.setAttribute('translate', 'no')
     locationNameEl.textContent = location.name;
 
     const deleteButton = document.createElement('button');
@@ -573,5 +582,5 @@ async function loadWeather() {
 
 // For testing with node/jest
 if (typeof module !== 'undefined') {
-    module.exports = { getTempScore, getWindScore, getPrecipScore, computeLinearRating, getWeatherCondition };
+    module.exports = {getTempScore, getWindScore, getPrecipScore, computeLinearRating, getWeatherCondition};
 }
