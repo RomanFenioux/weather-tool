@@ -56,6 +56,13 @@ function initApp() {
     // process keyboard shortcuts, such as changing date with arrow keys
     document.addEventListener('keydown', onKeyDown, false);
 
+    // prevent keyboard shortcuts when an input is selected
+    document.querySelectorAll('input').forEach(
+        el => el.addEventListener('keydown', e => {
+            e.stopPropagation();
+        })
+    )
+
     // Hide right click menu when clicking anywhere else
     document.addEventListener('click', () => {
         UI.contextMenu.classList.remove('visible');
@@ -78,13 +85,14 @@ function initApp() {
  * Process key shortcuts
  */
 function onKeyDown(e) {
-    leftArrowCode = 37;
-    rightArrowCode = 39;
-    switch (e.keyCode) {
-        case leftArrowCode:
+    if (e.defaultPrevented) {
+        return; // Do nothing if the event was already processed
+    }
+    switch (e.key) {
+        case "ArrowLeft":
             moveDateBackward();
             break;
-        case rightArrowCode:
+        case "ArrowRight":
             moveDateForward();
             break;
     }
