@@ -492,6 +492,7 @@ function createWeatherCard(viewModel, trendClass, location, index) {
 
     const locationNameEl = document.createElement('div');
     locationNameEl.className = 'location-name';
+    locationNameEl.setAttribute('translate', 'no')
     locationNameEl.textContent = location.name;
 
     const deleteButton = document.createElement('button');
