@@ -37,6 +37,8 @@ function initApp() {
     UI.dateInput = document.getElementById('dateInput');
     UI.trendBanner = document.getElementById('trendBanner');
 
+    lucide.createIcons();
+
     const savedLocations = localStorage.getItem(Config.savedLocationsPrefix);
     if (savedLocations) {
         locations = JSON.parse(savedLocations);
@@ -508,7 +510,7 @@ function createWeatherCard(viewModel, trendClass, location, index) {
     deleteButton.onclick = () => {
         deleteLocation(index)
     };
-    deleteButton.textContent = '❌';
+    deleteButton.innerHTML = `<i data-lucide="x"></i>`;
     header.appendChild(locationNameEl);
     header.appendChild(deleteButton);
 
@@ -578,6 +580,7 @@ async function loadWeather() {
     weatherCards.forEach(card => {
         grid.appendChild(card)
     });
+    lucide.createIcons();
 }
 
 // For testing with node/jest
