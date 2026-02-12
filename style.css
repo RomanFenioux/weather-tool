@@ -154,7 +154,7 @@ button:disabled {
 .location-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 15px;
 }
 
@@ -306,4 +306,10 @@ button:disabled {
     margin-bottom: 20px;
     font-size: 0.9em;
     color: #1565c0;
+}
+.lucide {
+    stroke: white;
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
 }
