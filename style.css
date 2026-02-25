@@ -308,7 +308,6 @@ button:disabled {
     color: #1565c0;
 }
 .lucide {
-    stroke: white;
     width: 20px;
     height: 20px;
     vertical-align: middle;
