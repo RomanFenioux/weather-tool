@@ -46,6 +46,10 @@ h1 {
     align-items: center;
 }
 
+.day-label {
+    color: #555;
+}
+
 .date-selector {
     flex: 1;
     min-width: 200px;
