@@ -44,10 +44,12 @@ function initApp() {
         locations = JSON.parse(savedLocations);
     }
     setupDateInput();
+    updateDayLabel();
 
     // reload the weather data every time the date is changed
     UI.dateInput.addEventListener('change', loadWeather);
     UI.dateInput.addEventListener('change', updateNavButtonEnabledState);
+    UI.dateInput.addEventListener('change', updateDayLabel);
 
     // We show a custom right click menu when clicking on weather cards from the grid
     UI.grid.addEventListener('contextmenu', onRightClickOnWeatherGrid);
@@ -118,6 +120,22 @@ function updateNavButtonEnabledState() {
             forwardButton.disabled = false;
 
     }
+}
+
+function updateDayLabel() {
+    const dayLabels = {
+        0:'SUN',
+        1:'MON',
+        2:'TUE',
+        3:'WED',
+        4:'THU',
+        5:'FRI',
+        6:'SAT',
+
+    }
+    const dayLabel = document.getElementById('dayLabel');
+    const selectedDate = new Date(UI.dateInput.value);
+    dayLabel.innerText = dayLabels[selectedDate.getDay()];
 }
 
 /**
