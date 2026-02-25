@@ -251,7 +251,16 @@ function getWeatherDescription(weatherCode) {
  */
 function windDirToArrow(deg) {
     const toDeg = (deg + 180) % 360;
-    const arrows = ['↑ S', '↗ SW', '→ W', '↘ NW', '↓ N', '↙ NE', '← E', '↖ SE'];
+    const arrows = [
+        lucideIcon("move-up") + ' S',
+        lucideIcon("move-up-right") + ' SW',
+        lucideIcon("move-right") + ' W',
+        lucideIcon("move-down-right") + ' NW',
+        lucideIcon("move-down") + ' N',
+        lucideIcon("move-down-left") + ' NE',
+        lucideIcon("move-left") + ' E',
+        lucideIcon("move-up-left") + ' SE'
+    ];
     const index = Math.round(toDeg / 45) % 8;
     return arrows[index];
 }
@@ -480,11 +489,18 @@ function createWeatherItem(icon, text) {
     iconSpan.textContent = icon;
 
     const textSpan = document.createElement('span');
-    textSpan.textContent = text;
+    textSpan.innerHTML = text;
 
     item.appendChild(iconSpan);
     item.appendChild(textSpan);
     return item;
+}
+
+/**
+ * Get an icon from the lucide icon pack
+ */
+function lucideIcon(iconName) {
+    return `<i data-lucide=${iconName}></i>`;
 }
 
 /**
@@ -510,7 +526,7 @@ function createWeatherCard(viewModel, trendClass, location, index) {
     deleteButton.onclick = () => {
         deleteLocation(index)
     };
-    deleteButton.innerHTML = `<i data-lucide="x"></i>`;
+    deleteButton.innerHTML = lucideIcon("x");
     header.appendChild(locationNameEl);
     header.appendChild(deleteButton);
 
